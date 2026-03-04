@@ -10,14 +10,9 @@ import com.consultingplatform.model.payment.PaymentMethod;
 import com.consultingplatform.model.payment.PaymentStrategy;
 import org.springframework.stereotype.Service;
 
-/**
- * Factory service – creates the correct PaymentStrategy based on payment type.
- * Used by PaymentService for both one-time payments (UC5) and saved methods (UC6).
- */
 @Service
 public class PaymentValidationService {
 
-    // Creates a strategy from inline payment details (one-time payment, UC5)
     public PaymentStrategy createStrategy(PaymentMethodDto dto) {
         if (dto == null || dto.getType() == null) {
             throw new IllegalArgumentException("Payment type is required");
@@ -42,8 +37,6 @@ public class PaymentValidationService {
         }
     }
 
-    // Creates a strategy from a saved PaymentMethod (UC6 reuse).
-    // Only masked data is stored, so validatePaymentDetails() must NOT be called on the result.
     public PaymentStrategy createStrategyFromSaved(PaymentMethod saved) {
         if (saved.getType() == PaymentType.CREDIT_CARD) {
             return new CreditCardPayment("**** **** **** " + saved.getLast4Digits(), saved.getExpiryDate(), null);

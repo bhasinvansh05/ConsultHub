@@ -6,15 +6,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * UC6 – Manage Payment Methods
- *
- * Represents a saved payment method belonging to a client.
- * Referenced by Client.paymentMethods in the class diagram.
- *
- * Sensitive data (full card number, CVV) is never stored –
- * only masked/safe values are persisted (last4Digits, expiryDate, etc.).
- */
 @Entity
 @Table(name = "payment_methods")
 @Data
@@ -34,16 +25,11 @@ public class PaymentMethod {
     @Column(nullable = false)
     private PaymentType type;
 
-    // --- Credit / Debit card (stored masked) ---
-    private String last4Digits;       // last 4 of card number
-    private String expiryDate;        // MM/YY
+    private String last4Digits;
+    private String expiryDate;
     private String cardholderName;
-
-    // --- PayPal ---
     private String paypalEmail;
-
-    // --- Bank transfer (stored masked) ---
-    private String last4AccountDigits; // last 4 of account number
+    private String last4AccountDigits;
     private String routingNumber;
 
     @Column(name = "is_default", nullable = false)
