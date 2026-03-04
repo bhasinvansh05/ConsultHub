@@ -26,7 +26,6 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentValidationService validationService;
 
-    // UC5 – Process a payment for a confirmed booking
     public PaymentResponseDto processPayment(ProcessPaymentRequest request) throws InterruptedException {
         if (request.getBookingId() == null || request.getClientId() == null || request.getAmount() == null) {
             throw new IllegalArgumentException("bookingId, clientId, and amount are required");
@@ -36,7 +35,6 @@ public class PaymentService {
         boolean skipValidation;
 
         if (request.getSavedPaymentMethodId() != null) {
-            // Client is using a saved payment method
             Optional<PaymentMethod> savedOpt = paymentMethodRepository
                     .findByIdAndClientId(request.getSavedPaymentMethodId(), request.getClientId());
 
@@ -45,10 +43,9 @@ public class PaymentService {
             }
 
             strategy = validationService.createStrategyFromSaved(savedOpt.get());
-            skipValidation = true; // already validated when it was saved
+            skipValidation = true;
 
         } else {
-            // Client is providing payment details inline (one-time use)
             if (request.getPaymentDetails() == null || request.getPaymentDetails().getType() == null) {
                 throw new IllegalArgumentException("Either savedPaymentMethodId or paymentDetails with a type must be provided");
             }
@@ -61,10 +58,8 @@ public class PaymentService {
             throw new IllegalArgumentException("Payment details validation failed for type: " + strategy.getPaymentType());
         }
 
-        // Simulate payment gateway delay (2 seconds per spec)
         Thread.sleep(2000);
 
-        // Strategy creates the Payment object with transactionId, amount, timestamp, status
         Payment payment = strategy.processPayment(request.getAmount().doubleValue());
         payment.setBookingId(request.getBookingId());
         payment.setClientId(request.getClientId());
@@ -72,12 +67,9 @@ public class PaymentService {
 
         payment = paymentRepository.save(payment);
 
-        // TODO: notify booking system that payment is complete (UC2/UC9/UC10)
-
         return toResponseDto(payment);
     }
 
-    // UC6 – Add a new saved payment method for the client
     public PaymentMethod addPaymentMethod(Long clientId, PaymentMethodDto dto) {
         PaymentStrategy strategy = validationService.createStrategy(dto);
 
@@ -90,12 +82,10 @@ public class PaymentService {
         return paymentMethodRepository.save(method);
     }
 
-    // UC6 – Get all saved payment methods for a client
     public List<PaymentMethod> getPaymentMethods(Long clientId) {
         return paymentMethodRepository.findByClientId(clientId);
     }
 
-    // UC6 – Update an existing saved payment method
     public PaymentMethod updatePaymentMethod(Long clientId, Long id, PaymentMethodDto dto) {
         Optional<PaymentMethod> existingOpt = paymentMethodRepository.findByIdAndClientId(id, clientId);
 
@@ -116,7 +106,6 @@ public class PaymentService {
         return paymentMethodRepository.save(updated);
     }
 
-    // UC6 – Remove a saved payment method
     @Transactional
     public void removePaymentMethod(Long clientId, Long id) {
         Optional<PaymentMethod> methodOpt = paymentMethodRepository.findByIdAndClientId(id, clientId);
@@ -128,7 +117,6 @@ public class PaymentService {
         paymentMethodRepository.deleteByIdAndClientId(id, clientId);
     }
 
-    // UC7 – Get full payment history for a client, sorted newest first
     public List<PaymentResponseDto> getPaymentHistory(Long clientId) {
         List<Payment> payments = paymentRepository.findByClientIdOrderByTimestampDesc(clientId);
 
@@ -139,7 +127,6 @@ public class PaymentService {
         return result;
     }
 
-    // UC7 – Get payment history filtered by status
     public List<PaymentResponseDto> getPaymentHistoryByStatus(Long clientId, String status) {
         PaymentStatus paymentStatus;
         try {
@@ -157,7 +144,6 @@ public class PaymentService {
         return result;
     }
 
-    // Helper – builds a PaymentMethod entity storing only safe/masked data (never raw card numbers)
     private PaymentMethod buildPaymentMethod(Long clientId, PaymentMethodDto dto, PaymentType type) {
         PaymentMethod method = new PaymentMethod();
         method.setClientId(clientId);
@@ -184,7 +170,6 @@ public class PaymentService {
         return method;
     }
 
-    // Helper – converts a Payment entity into a response DTO
     private PaymentResponseDto toResponseDto(Payment payment) {
         PaymentResponseDto dto = new PaymentResponseDto();
         dto.setId(payment.getId());
