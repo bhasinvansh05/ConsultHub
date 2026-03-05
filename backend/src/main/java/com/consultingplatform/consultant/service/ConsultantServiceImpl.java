@@ -30,6 +30,19 @@ public class ConsultantServiceImpl implements ConsultantService {
     }
 
     @Override
+    public ConsultingService createConsultingService(Long consultantId, CreateConsultingServiceRequest request) {
+        ConsultingService service = new ConsultingService();
+        service.setConsultantId(consultantId);
+        service.setServiceType(request.getServiceType().trim().toUpperCase());
+        service.setTitle(request.getTitle().trim());
+        service.setDescription(request.getDescription());
+        service.setDurationMinutes(request.getDurationMinutes());
+        service.setBasePrice(request.getBasePrice());
+        service.setIsActive(true);
+        return consultingServiceRepository.save(service);
+    }
+
+    @Override
     public AvailabilitySlotResponse createAvailabilitySlot(Long consultantId, CreateAvailabilitySlotRequest request) {
         ConsultingService consultingService = consultingServiceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Consulting service not found"));
