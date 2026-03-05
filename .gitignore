@@ -36,6 +36,16 @@ frontend/.env
 .env
 *.env.local
 
+# Logs and local databases
+*.log
+*.db
+*.sqlite
+
+# Root-level build outputs
+/target
+/build
+/node_modules
+
 # IDE
 .idea/
 .vscode/

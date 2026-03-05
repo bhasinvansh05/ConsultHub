@@ -23,9 +23,11 @@ services:
     container_name: eecs3311-backend
     environment:
       SERVER_PORT: ${SPRING_PORT:-8080}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST:-db}:5432/${DB_NAME:-consulting_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-admin}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-changeme}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://${DB_HOST:-db}:5432/${DB_NAME:-consulting_db}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-changeme}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      DB_CHANNEL_BINDING: ${DB_CHANNEL_BINDING:-disable}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "${SPRING_PORT:-8080}:${SPRING_PORT:-8080}"

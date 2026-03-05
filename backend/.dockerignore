@@ -6,3 +6,7 @@ target
 *.iml
 mvnw
 mvnw.cmd
+.env
+.env.local
+.env.production
+.env.development
