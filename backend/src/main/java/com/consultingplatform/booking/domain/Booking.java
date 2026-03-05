@@ -1,5 +1,6 @@
 package com.consultingplatform.booking.domain;
 
+import com.consultingplatform.booking.state.*;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -54,4 +55,52 @@ public class Booking {
 
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
+
+    // State Pattern: transient field (not stored in DB)
+    @Transient
+    private BookingState state;
+
+    /**
+     * Initialize state based on current status (called after loading from DB)
+     */
+    @PostLoad
+    public void initializeState() {
+        this.state = switch (this.status) {
+            case "REQUESTED" -> new RequestedState();
+            case "CONFIRMED" -> new ConfirmedState();
+            case "PAID" -> new PaidState();
+            case "COMPLETED" -> new CompletedState();
+            case "CANCELLED" -> new CancelledState();
+            case "REJECTED" -> new RejectedState();
+            default -> new RequestedState();
+        };
+    }
+
+    /**
+     * Delegate state transitions to current state
+     */
+    public void accept() {
+        if (state == null) initializeState();
+        state.accept(this);
+    }
+
+    public void reject() {
+        if (state == null) initializeState();
+        state.reject(this);
+    }
+
+    public void complete() {
+        if (state == null) initializeState();
+        state.complete(this);
+    }
+
+    public void cancel() {
+        if (state == null) initializeState();
+        state.cancel(this);
+    }
+
+    public void processPayment() {
+        if (state == null) initializeState();
+        state.processPayment(this);
+    }
 }

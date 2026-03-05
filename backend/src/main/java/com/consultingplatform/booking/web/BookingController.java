@@ -32,6 +32,26 @@ public class BookingController {
         return bookingService.cancelBooking(id);
     }
 
+    @PutMapping("/{id}/accept")
+    public Booking acceptBooking(@PathVariable Long id) {
+        return bookingService.acceptBooking(id);
+    }
+
+    @PutMapping("/{id}/reject")
+    public Booking rejectBooking(@PathVariable Long id) {
+        return bookingService.rejectBooking(id);
+    }
+
+    @PutMapping("/{id}/complete")
+    public Booking completeBooking(@PathVariable Long id) {
+        return bookingService.completeBooking(id);
+    }
+
+    @PutMapping("/{id}/payment")
+    public Booking processPayment(@PathVariable Long id) {
+        return bookingService.processPayment(id);
+    }
+
     @GetMapping("/client/{clientId}")
     public List<Booking> getClientBookings(@PathVariable Long clientId) {
         return bookingService.getClientBookings(clientId);

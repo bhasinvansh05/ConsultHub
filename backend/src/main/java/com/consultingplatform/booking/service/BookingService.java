@@ -13,4 +13,13 @@ public interface BookingService {
 
     List<Booking> getClientBookings(Long clientId);
 
+    // State Pattern methods
+    Booking acceptBooking(Long bookingId);
+
+    Booking rejectBooking(Long bookingId);
+
+    Booking completeBooking(Long bookingId);
+
+    Booking processPayment(Long bookingId);
+
 }
