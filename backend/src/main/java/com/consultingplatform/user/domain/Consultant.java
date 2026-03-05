@@ -13,18 +13,15 @@ public class Consultant extends User {
     @Column(name = "rating")
     private Double rating;
     
-    @Column(name = "is_approved")
-    private Boolean isApproved = false;
-    
     // Business logic handled by Consultant module
+    // Approval status tracked in consultant_registrations table (Admin module)
 
     @Override
     public boolean login() {
-        // Consultant must be approved and active to login
+        // Basic account status check
+        // Approval verification handled by authentication service via consultant_registrations
         return this.getAccountStatus() != null && 
-               this.getAccountStatus().equals("ACTIVE") &&
-               this.isApproved != null && 
-               this.isApproved;
+               this.getAccountStatus().equals("ACTIVE");
     }
 
     @Override

@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
     private Consultant mapToConsultant(Map<String, Object> data) {
         Consultant consultant = new Consultant();
         setCommonFields(consultant, data);
-        consultant.setIsApproved(false); // Default to not approved
+        // Approval status managed via consultant_registrations table
         return consultant;
     }
     
