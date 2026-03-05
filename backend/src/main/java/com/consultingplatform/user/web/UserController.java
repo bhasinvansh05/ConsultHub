@@ -1,34 +1,48 @@
 package com.consultingplatform.user.web;
 
 import com.consultingplatform.user.domain.User;
-import com.consultingplatform.user.repository.UserRepository;
+import com.consultingplatform.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
+    /**
+     * Create a user based on role type
+     * Request body must include "role" field: "CLIENT", "CONSULTANT", or "ADMIN"
+     */
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+    public User createUser(@RequestBody Map<String, Object> userData) {
+        return userService.createUser(userData);
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userService.getUserById(id);
+    }
+    
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody Map<String, Object> userData) {
+        return userService.updateUser(id, userData);
+    }
+    
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
     }
 }

@@ -9,8 +9,10 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "app_users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 @Data
-public class User {
+public abstract class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +36,6 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String role;
-
     @Column(name = "account_status", nullable = false)
     private String accountStatus = "ACTIVE";
 
@@ -47,4 +46,9 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // Abstract methods from class diagram
+    public abstract boolean login();
+    
+    public abstract void logout();
 }
