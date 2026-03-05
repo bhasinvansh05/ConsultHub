@@ -15,7 +15,8 @@ public class SystemPolicyServiceImpl implements SystemPolicyService {
         "CANCELLATION_RULES",
         "PRICING_STRATEGY",
         "NOTIFICATION_SETTINGS",
-        "REFUND_POLICY"
+        "REFUND_POLICY",
+        "MODEL"
     );
 
     private final SystemPolicyRepository repository;
