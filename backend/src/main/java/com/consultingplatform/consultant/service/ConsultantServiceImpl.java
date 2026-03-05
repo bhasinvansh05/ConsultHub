@@ -5,8 +5,8 @@ import com.consultingplatform.booking.domain.Booking;
 import com.consultingplatform.booking.repository.BookingRepository;
 import com.consultingplatform.consultant.domain.AvailabilitySlot;
 import com.consultingplatform.consultant.repository.AvailabilitySlotRepository;
-import com.consultingplatform.service.domain.ConsultingService;
-import com.consultingplatform.service.repository.ConsultingServiceRepository;
+import com.consultingplatform.consultant.domain.ConsultingService;
+import com.consultingplatform.consultant.repository.ConsultingServiceRepository;
 import com.consultingplatform.consultant.web.dto.*;
 import org.springframework.stereotype.Service;
 

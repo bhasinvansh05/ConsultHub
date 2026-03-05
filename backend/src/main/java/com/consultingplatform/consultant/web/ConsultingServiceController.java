@@ -1,7 +1,7 @@
-package com.consultingplatform.service.web;
+package com.consultingplatform.consultant.web;
 
-import com.consultingplatform.service.domain.ConsultingService;
-import com.consultingplatform.service.repository.ConsultingServiceRepository;
+import com.consultingplatform.consultant.domain.ConsultingService;
+import com.consultingplatform.consultant.repository.ConsultingServiceRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

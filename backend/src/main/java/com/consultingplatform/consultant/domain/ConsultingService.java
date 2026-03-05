@@ -1,4 +1,4 @@
-package com.consultingplatform.service.domain;
+package com.consultingplatform.consultant.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;

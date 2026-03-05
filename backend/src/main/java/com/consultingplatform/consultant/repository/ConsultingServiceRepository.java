@@ -1,6 +1,6 @@
-package com.consultingplatform.service.repository;
+package com.consultingplatform.consultant.repository;
 
-import com.consultingplatform.service.domain.ConsultingService;
+import com.consultingplatform.consultant.domain.ConsultingService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
