@@ -28,7 +28,6 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final BookingRepository bookingRepository;
     private final PaymentValidationService validationService;
-    private final BookingRepository bookingRepository;
 
     @Transactional
     public PaymentResponseDto processPayment(ProcessPaymentRequest request) throws InterruptedException {
@@ -94,12 +93,6 @@ public class PaymentService {
             bookingRepository.save(booking);
         }
 
-        // Update booking status to PAID after successful payment
-        Booking booking = bookingRepository.findById(request.getBookingId())
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found with id: " + request.getBookingId()));
-        booking.processPayment();
-        bookingRepository.save(booking);
-        
         return toResponseDto(payment);
     }
 
