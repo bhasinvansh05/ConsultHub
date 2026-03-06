@@ -16,7 +16,10 @@ import com.consultingplatform.admin.service.PolicyUpsertResult;
 import com.consultingplatform.admin.service.SystemPolicyService;
 import com.consultingplatform.admin.web.dto.ConsultantApprovalResponseDto;
 import com.consultingplatform.admin.web.dto.PolicyResponseDto;
+import com.consultingplatform.user.domain.Admin;
+import com.consultingplatform.user.repository.UserRepository;
 import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -30,17 +33,20 @@ class AdminControllerTest {
     private ConsultantApprovalService consultantApprovalService;
     private SystemPolicyService systemPolicyService;
     private ConsultantRegistrationRepository consultantRegistrationRepository;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setup() {
         consultantApprovalService = Mockito.mock(ConsultantApprovalService.class);
         systemPolicyService = Mockito.mock(SystemPolicyService.class);
         consultantRegistrationRepository = Mockito.mock(ConsultantRegistrationRepository.class);
+        userRepository = Mockito.mock(UserRepository.class);
 
         AdminController controller = new AdminController(
             consultantApprovalService,
             systemPolicyService,
-            consultantRegistrationRepository
+            consultantRegistrationRepository,
+            userRepository
         );
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new GlobalExceptionHandler())
@@ -52,12 +58,14 @@ class AdminControllerTest {
         ConsultantApprovalResponseDto response = new ConsultantApprovalResponseDto(
             1001L,
             ConsultantApprovalStatus.APPROVED,
-            "admin-1",
+            "1",
             Instant.now()
         );
         when(consultantApprovalService.approveOrRejectConsultant(eq(1001L), any())).thenReturn(response);
+        Admin admin = new Admin();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(admin));
 
-        String body = "{\"adminId\":\"admin-1\",\"decision\":\"APPROVE\",\"reason\":\"ok\"}";
+        String body = "{\"adminId\":\"1\",\"decision\":\"APPROVE\",\"reason\":\"ok\"}";
 
         mockMvc.perform(post("/api/admin/consultants/1001/approval")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -71,8 +79,10 @@ class AdminControllerTest {
     void reapproveConsultant_conflict() throws Exception {
         when(consultantApprovalService.approveOrRejectConsultant(eq(1001L), any()))
             .thenThrow(new ConflictException("Consultant registration already decided"));
+        Admin admin = new Admin();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(admin));
 
-        String body = "{\"adminId\":\"admin-1\",\"decision\":\"APPROVE\",\"reason\":\"\"}";
+        String body = "{\"adminId\":\"1\",\"decision\":\"APPROVE\",\"reason\":\"\"}";
 
         mockMvc.perform(post("/api/admin/consultants/1001/approval")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -110,7 +120,7 @@ class AdminControllerTest {
 
     @Test
     void missingDecision_validationError400() throws Exception {
-        String body = "{\"adminId\":\"admin-1\"}";
+        String body = "{\"adminId\":\"1\"}";
 
         mockMvc.perform(post("/api/admin/consultants/1001/approval")
                 .contentType(MediaType.APPLICATION_JSON)

@@ -10,6 +10,8 @@ import com.consultingplatform.admin.web.dto.ConsultantApprovalRequestDto;
 import com.consultingplatform.admin.web.dto.ConsultantApprovalResponseDto;
 import com.consultingplatform.admin.web.dto.PolicyResponseDto;
 import com.consultingplatform.admin.web.dto.PolicyUpsertRequestDto;
+import com.consultingplatform.user.domain.Admin;
+import com.consultingplatform.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -29,15 +32,18 @@ public class AdminController {
     private final ConsultantApprovalService consultantApprovalService;
     private final SystemPolicyService systemPolicyService;
     private final ConsultantRegistrationRepository consultantRegistrationRepository;
+    private final UserRepository userRepository;
 
     public AdminController(
         ConsultantApprovalService consultantApprovalService,
         SystemPolicyService systemPolicyService,
-        ConsultantRegistrationRepository consultantRegistrationRepository
+        ConsultantRegistrationRepository consultantRegistrationRepository,
+        UserRepository userRepository
     ) {
         this.consultantApprovalService = consultantApprovalService;
         this.systemPolicyService = systemPolicyService;
         this.consultantRegistrationRepository = consultantRegistrationRepository;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/consultants/{consultantId}/approval")
@@ -45,6 +51,21 @@ public class AdminController {
         @PathVariable Long consultantId,
         @Valid @RequestBody ConsultantApprovalRequestDto request
     ) {
+        String adminId = request.getAdminId();
+        Long adminUserId;
+        try {
+            adminUserId = Long.parseLong(adminId.trim());
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can approve or reject consultant registration");
+        }
+
+        boolean isAdmin = userRepository.findById(adminUserId)
+            .map(user -> user instanceof Admin)
+            .orElse(false);
+        if (!isAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admin can approve or reject consultant registration");
+        }
+
         return ResponseEntity.ok(consultantApprovalService.approveOrRejectConsultant(consultantId, request));
     }
 
