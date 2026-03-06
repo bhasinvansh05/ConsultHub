@@ -35,4 +35,5 @@ public class ConsultantApprovalRequestDto {
     public void setReason(String reason) {
         this.reason = reason;
     }
+
 }

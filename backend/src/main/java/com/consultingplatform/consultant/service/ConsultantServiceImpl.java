@@ -9,11 +9,12 @@ import com.consultingplatform.consultant.domain.ConsultingService;
 import com.consultingplatform.consultant.repository.ConsultingServiceRepository;
 import com.consultingplatform.consultant.web.dto.*;
 import com.consultingplatform.notification.service.NotificationService;
+import com.consultingplatform.user.domain.Admin;
+import com.consultingplatform.user.domain.Consultant;
+import com.consultingplatform.user.domain.User;
 
 import jakarta.transaction.Transactional;
 
-import com.consultingplatform.user.domain.Consultant;
-import com.consultingplatform.user.domain.User;
 import com.consultingplatform.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -45,9 +46,9 @@ public class ConsultantServiceImpl implements ConsultantService {
     @Override
     public ConsultingService createConsultingService(Long consultantId, CreateConsultingServiceRequest request) {
         User user = userRepository.findById(consultantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Consultant not found"));
-        if (!(user instanceof Consultant)) {
-            throw new IllegalStateException("Provided id is not a consultant");
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (!(user instanceof Admin) && !(user instanceof Consultant)) {
+            throw new IllegalStateException("Only admin or consultant can add services");
         }
 
         ConsultingService service = new ConsultingService();

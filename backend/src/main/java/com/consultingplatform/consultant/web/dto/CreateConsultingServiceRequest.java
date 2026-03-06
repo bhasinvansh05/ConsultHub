@@ -64,4 +64,5 @@ public class CreateConsultingServiceRequest {
     public void setBasePrice(BigDecimal basePrice) {
         this.basePrice = basePrice;
     }
+
 }

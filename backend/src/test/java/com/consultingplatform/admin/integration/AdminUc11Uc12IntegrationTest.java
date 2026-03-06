@@ -11,6 +11,8 @@ import com.consultingplatform.admin.domain.ConsultantApprovalStatus;
 import com.consultingplatform.admin.domain.ConsultantRegistration;
 import com.consultingplatform.admin.repository.ConsultantRegistrationRepository;
 import com.consultingplatform.admin.repository.SystemPolicyRepository;
+import com.consultingplatform.user.domain.Admin;
+import com.consultingplatform.user.repository.UserRepository;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,9 @@ class AdminUc11Uc12IntegrationTest {
     @Autowired
     private SystemPolicyRepository systemPolicyRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @BeforeEach
     void setupData() {
         systemPolicyRepository.deleteAll();
@@ -43,8 +48,9 @@ class AdminUc11Uc12IntegrationTest {
     @Test
     void uc11_approveConsultant_success() throws Exception {
         createPendingConsultant(3001L);
+        Long adminId = createAdminUser();
 
-        String body = "{\"adminId\":\"admin-1\",\"decision\":\"APPROVE\",\"reason\":\"verified\"}";
+        String body = "{\"adminId\":\"" + adminId + "\",\"decision\":\"APPROVE\",\"reason\":\"verified\"}";
 
         mockMvc.perform(post("/api/admin/consultants/3001/approval")
                 .contentType("application/json")
@@ -57,7 +63,8 @@ class AdminUc11Uc12IntegrationTest {
     @Test
     void uc11_rejectConsultant_success() throws Exception {
         createPendingConsultant(3002L);
-        String body = "{\"adminId\":\"admin-1\",\"decision\":\"REJECT\",\"reason\":\"incomplete profile\"}";
+        Long adminId = createAdminUser();
+        String body = "{\"adminId\":\"" + adminId + "\",\"decision\":\"REJECT\",\"reason\":\"incomplete profile\"}";
 
         mockMvc.perform(post("/api/admin/consultants/3002/approval")
                 .contentType("application/json")
@@ -145,5 +152,15 @@ class AdminUc11Uc12IntegrationTest {
         registration.setStatus(ConsultantApprovalStatus.PENDING);
         registration.setCreatedAt(Instant.now());
         consultantRegistrationRepository.save(registration);
+    }
+
+    private Long createAdminUser() {
+        Admin admin = new Admin();
+        admin.setEmail("admin-" + System.nanoTime() + "@test.com");
+        admin.setPasswordHash("x");
+        admin.setFirstName("Admin");
+        admin.setLastName("User");
+        admin.setPhoneNumber("1111111111");
+        return userRepository.save(admin).getId();
     }
 }
