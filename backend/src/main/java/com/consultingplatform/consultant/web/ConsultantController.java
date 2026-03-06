@@ -1,5 +1,6 @@
 package com.consultingplatform.consultant.web;
 
+import com.consultingplatform.consultant.domain.ConsultingService;
 import com.consultingplatform.consultant.service.ConsultantService;
 import com.consultingplatform.consultant.web.dto.*;
 import jakarta.validation.Valid;
@@ -17,6 +18,14 @@ public class ConsultantController {
 
     public ConsultantController(ConsultantService consultantService) {
         this.consultantService = consultantService;
+    }
+
+    @PostMapping("/{consultantId}/services")
+    public ResponseEntity<ConsultingService> createConsultingService(
+            @PathVariable Long consultantId,
+            @Valid @RequestBody CreateConsultingServiceRequest request) {
+        ConsultingService created = consultantService.createConsultingService(consultantId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PostMapping("/{consultantId}/availability")

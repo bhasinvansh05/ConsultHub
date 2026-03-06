@@ -11,6 +11,9 @@ import com.consultingplatform.consultant.web.dto.*;
 
 import jakarta.transaction.Transactional;
 
+import com.consultingplatform.user.domain.Consultant;
+import com.consultingplatform.user.domain.User;
+import com.consultingplatform.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,13 +26,35 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final AvailabilitySlotRepository availabilitySlotRepository;
     private final BookingRepository bookingRepository;
     private final ConsultingServiceRepository consultingServiceRepository;
+    private final UserRepository userRepository;
 
     public ConsultantServiceImpl(AvailabilitySlotRepository availabilitySlotRepository,
                                  BookingRepository bookingRepository,
-                                 ConsultingServiceRepository consultingServiceRepository) {
+                                 ConsultingServiceRepository consultingServiceRepository,
+                                 UserRepository userRepository) {
         this.availabilitySlotRepository = availabilitySlotRepository;
         this.bookingRepository = bookingRepository;
         this.consultingServiceRepository = consultingServiceRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public ConsultingService createConsultingService(Long consultantId, CreateConsultingServiceRequest request) {
+        User user = userRepository.findById(consultantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Consultant not found"));
+        if (!(user instanceof Consultant)) {
+            throw new IllegalStateException("Provided id is not a consultant");
+        }
+
+        ConsultingService service = new ConsultingService();
+        service.setConsultantId(consultantId);
+        service.setServiceType(request.getServiceType().trim().toUpperCase());
+        service.setTitle(request.getTitle().trim());
+        service.setDescription(request.getDescription());
+        service.setDurationMinutes(request.getDurationMinutes());
+        service.setBasePrice(request.getBasePrice());
+        service.setIsActive(true);
+        return consultingServiceRepository.save(service);
     }
 
     @Override
