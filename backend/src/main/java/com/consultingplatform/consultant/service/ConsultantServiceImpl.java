@@ -8,6 +8,7 @@ import com.consultingplatform.consultant.repository.AvailabilitySlotRepository;
 import com.consultingplatform.consultant.domain.ConsultingService;
 import com.consultingplatform.consultant.repository.ConsultingServiceRepository;
 import com.consultingplatform.consultant.web.dto.*;
+import com.consultingplatform.notification.service.NotificationService;
 
 import jakarta.transaction.Transactional;
 
@@ -27,15 +28,18 @@ public class ConsultantServiceImpl implements ConsultantService {
     private final BookingRepository bookingRepository;
     private final ConsultingServiceRepository consultingServiceRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ConsultantServiceImpl(AvailabilitySlotRepository availabilitySlotRepository,
                                  BookingRepository bookingRepository,
                                  ConsultingServiceRepository consultingServiceRepository,
-                                 UserRepository userRepository) {
+                                 UserRepository userRepository,
+                                 NotificationService notificationService) {
         this.availabilitySlotRepository = availabilitySlotRepository;
         this.bookingRepository = bookingRepository;
         this.consultingServiceRepository = consultingServiceRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -162,6 +166,7 @@ public class ConsultantServiceImpl implements ConsultantService {
         }
         
         Booking saved = bookingRepository.save(booking);
+        notificationService.sendBookingRejectedNotificationToClient(saved, saved.getRejectionReason());
         return toBookingResponse(saved);
     }
 

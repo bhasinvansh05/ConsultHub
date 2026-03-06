@@ -5,6 +5,7 @@ import com.consultingplatform.booking.repository.BookingRepository;
 import com.consultingplatform.booking.web.BookingRequest;
 import com.consultingplatform.consultant.domain.AvailabilitySlot;
 import com.consultingplatform.consultant.repository.AvailabilitySlotRepository;
+import com.consultingplatform.notification.service.NotificationService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +16,14 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final AvailabilitySlotRepository availabilitySlotRepository;
+    private final NotificationService notificationService;
 
     public BookingServiceImpl(BookingRepository bookingRepository,
-                            AvailabilitySlotRepository availabilitySlotRepository) {
+                            AvailabilitySlotRepository availabilitySlotRepository,
+                            NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.availabilitySlotRepository = availabilitySlotRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -75,7 +79,9 @@ public class BookingServiceImpl implements BookingService {
                     });
         }
 
-        return bookingRepository.save(booking);
+        Booking cancelled = bookingRepository.save(booking);
+        notificationService.sendBookingCancelledNotifications(cancelled);
+        return cancelled;
     }
 
     @Override
