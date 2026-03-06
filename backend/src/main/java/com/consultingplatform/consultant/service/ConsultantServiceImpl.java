@@ -8,6 +8,9 @@ import com.consultingplatform.consultant.repository.AvailabilitySlotRepository;
 import com.consultingplatform.consultant.domain.ConsultingService;
 import com.consultingplatform.consultant.repository.ConsultingServiceRepository;
 import com.consultingplatform.consultant.web.dto.*;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -115,6 +118,7 @@ public class ConsultantServiceImpl implements ConsultantService {
     }
 
     @Override
+    @Transactional
     public ConsultantBookingResponse rejectBooking(Long consultantId, Long bookingId, BookingDecisionRequest request) {
         Booking booking = getBookingForConsultant(consultantId, bookingId);
         booking.reject();
@@ -122,6 +126,16 @@ public class ConsultantServiceImpl implements ConsultantService {
         if (request != null && request.getReason() != null) {
             booking.setRejectionReason(request.getReason());
         }
+        
+        // Restore slot availability when booking is rejected
+        if (booking.getAvailabilitySlotId() != null) {
+            availabilitySlotRepository.findById(booking.getAvailabilitySlotId())
+                    .ifPresent(slot -> {
+                        slot.setIsAvailable(true);
+                        availabilitySlotRepository.save(slot);
+                    });
+        }
+        
         Booking saved = bookingRepository.save(booking);
         return toBookingResponse(saved);
     }

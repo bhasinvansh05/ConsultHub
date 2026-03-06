@@ -1,11 +1,12 @@
 package com.consultingplatform.booking.service;
 
 import com.consultingplatform.booking.domain.Booking;
+import com.consultingplatform.booking.web.BookingRequest;
 import java.util.List;
 
 public interface BookingService {
 
-    Booking requestBooking(Booking booking);
+    Booking requestBooking(BookingRequest request);
 
     Booking getBookingById(Long bookingId);
 
@@ -13,13 +14,7 @@ public interface BookingService {
 
     List<Booking> getClientBookings(Long clientId);
 
-    // State Pattern methods
-    Booking acceptBooking(Long bookingId);
-
-    Booking rejectBooking(Long bookingId);
-
-    Booking completeBooking(Long bookingId);
-
+    // Payment processing
     Booking processPayment(Long bookingId);
 
 }
