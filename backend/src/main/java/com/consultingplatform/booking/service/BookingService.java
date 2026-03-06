@@ -14,7 +14,4 @@ public interface BookingService {
 
     List<Booking> getClientBookings(Long clientId);
 
-    // Payment processing
-    Booking processPayment(Long bookingId);
-
 }

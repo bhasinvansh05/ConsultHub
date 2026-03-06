@@ -1,5 +1,7 @@
 package com.consultingplatform.payment.service;
 
+import com.consultingplatform.booking.domain.Booking;
+import com.consultingplatform.booking.repository.BookingRepository;
 import com.consultingplatform.payment.domain.Payment;
 import com.consultingplatform.payment.domain.PaymentMethod;
 import com.consultingplatform.payment.domain.PaymentStatus;
@@ -25,7 +27,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentValidationService validationService;
+    private final BookingRepository bookingRepository;
 
+    @Transactional
     public PaymentResponseDto processPayment(ProcessPaymentRequest request) throws InterruptedException {
         if (request.getBookingId() == null || request.getClientId() == null || request.getAmount() == null) {
             throw new IllegalArgumentException("bookingId, clientId, and amount are required");
@@ -67,6 +71,12 @@ public class PaymentService {
 
         payment = paymentRepository.save(payment);
 
+        // Update booking status to PAID after successful payment
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found with id: " + request.getBookingId()));
+        booking.processPayment();
+        bookingRepository.save(booking);
+        
         return toResponseDto(payment);
     }
 

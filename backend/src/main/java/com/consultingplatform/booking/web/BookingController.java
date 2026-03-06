@@ -33,11 +33,6 @@ public class BookingController {
         return bookingService.cancelBooking(id);
     }
 
-    @PutMapping("/{id}/payment")
-    public Booking processPayment(@PathVariable Long id) {
-        return bookingService.processPayment(id);
-    }
-
     @GetMapping("/client/{clientId}")
     public List<Booking> getClientBookings(@PathVariable Long clientId) {
         return bookingService.getClientBookings(clientId);

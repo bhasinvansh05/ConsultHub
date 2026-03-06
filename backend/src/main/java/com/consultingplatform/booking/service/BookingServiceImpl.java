@@ -79,17 +79,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking processPayment(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-
-        // Use State Pattern
-        booking.processPayment();
-
-        return bookingRepository.save(booking);
-    }
-
-    @Override
     public List<Booking> getClientBookings(Long clientId) {
 
         return bookingRepository.findByClientId(clientId);
