@@ -6,6 +6,7 @@ import com.consultingplatform.payment.web.dto.PaymentMethodDto;
 import com.consultingplatform.payment.web.dto.PaymentResponseDto;
 import com.consultingplatform.payment.web.dto.ProcessPaymentRequest;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class PaymentController {
 
     @PostMapping("/process")
     public ResponseEntity<PaymentResponseDto> processPayment(
-            @RequestBody ProcessPaymentRequest request) throws InterruptedException {
+            @Valid @RequestBody ProcessPaymentRequest request) throws InterruptedException {
         PaymentResponseDto response = paymentService.processPayment(request);
         return ResponseEntity.ok(response);
     }
@@ -29,7 +30,7 @@ public class PaymentController {
     @PostMapping("/methods/{clientId}")
     public ResponseEntity<PaymentMethod> addPaymentMethod(
             @PathVariable Long clientId,
-            @RequestBody PaymentMethodDto dto) {
+            @Valid @RequestBody PaymentMethodDto dto) {
         PaymentMethod created = paymentService.addPaymentMethod(clientId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -44,7 +45,7 @@ public class PaymentController {
     public ResponseEntity<PaymentMethod> updatePaymentMethod(
             @PathVariable Long clientId,
             @PathVariable Long id,
-            @RequestBody PaymentMethodDto dto) {
+            @Valid @RequestBody PaymentMethodDto dto) {
         PaymentMethod updated = paymentService.updatePaymentMethod(clientId, id, dto);
         return ResponseEntity.ok(updated);
     }

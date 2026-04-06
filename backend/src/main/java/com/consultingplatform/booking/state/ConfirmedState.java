@@ -20,10 +20,7 @@ public class ConfirmedState implements BookingState {
     
     @Override
     public void complete(Booking booking) {
-        // Complete after service is done -> move to COMPLETED state
-        booking.setStatus("COMPLETED");
-        booking.setCompletedAt(OffsetDateTime.now());
-        booking.setState(new CompletedState());
+        throw new IllegalStateException("Cannot complete booking before payment is processed");
     }
     
     @Override

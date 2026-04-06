@@ -1,5 +1,5 @@
 -- consulting_db schema for Neon (PostgreSQL)
--- Aligned with EECS 3311 project specification (UC1-UC12).
+-- Synced with live Neon schema on 2026-03-26.
 
 BEGIN;
 
@@ -249,9 +249,47 @@ CREATE TABLE IF NOT EXISTS notifications (
             'PAYMENT_SUCCESS',
             'PAYMENT_FAILED',
             'PAYMENT_REFUNDED',
-            'POLICY_UPDATED'
+            'POLICY_UPDATED',
+            'CONSULTANT_PENDING_APPROVAL'
         )
     )
+);
+
+-- =========================================================
+-- Chat conversations (live Neon schema)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS chat_conversations (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGINT NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    provider VARCHAR(100),
+    model VARCHAR(255),
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT ck_chat_messages_role CHECK (role IN ('USER', 'ASSISTANT', 'SYSTEM'))
+);
+
+-- =========================================================
+-- Legacy services table present in live Neon
+-- =========================================================
+CREATE TABLE IF NOT EXISTS services (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    duration_minutes INTEGER,
+    price_per_hour NUMERIC(10, 2),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- =========================================================
@@ -295,5 +333,11 @@ CREATE INDEX IF NOT EXISTS idx_system_policies_updated_at
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created_at
     ON notifications (user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_chat_conversations_user_updated
+    ON chat_conversations (user_id, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_created
+    ON chat_messages (conversation_id, created_at ASC);
 
 COMMIT;

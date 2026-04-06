@@ -20,8 +20,8 @@ public class CreditCardPayment implements PaymentStrategy {
         if (cardNumber == null || cvv == null || expiryDate == null) {
             return false;
         }
-        String cleanCard = cardNumber.replaceAll(" ", "");
-        if (!cleanCard.matches("\\d{16}")) {
+        String cleanCard = cardNumber.replaceAll("[\\s-]", "");
+        if (!cleanCard.matches("\\d{12,19}")) {
             return false;
         }
         String cleanCvv = cvv.trim();
@@ -41,7 +41,15 @@ public class CreditCardPayment implements PaymentStrategy {
         }
         try {
             int month = Integer.parseInt(parts[0]);
-            int year = 2000 + Integer.parseInt(parts[1]);
+            String yearPart = parts[1].trim();
+            int year;
+            if (yearPart.length() == 2) {
+                year = 2000 + Integer.parseInt(yearPart);
+            } else if (yearPart.length() == 4) {
+                year = Integer.parseInt(yearPart);
+            } else {
+                return false;
+            }
             if (month < 1 || month > 12) {
                 return false;
             }

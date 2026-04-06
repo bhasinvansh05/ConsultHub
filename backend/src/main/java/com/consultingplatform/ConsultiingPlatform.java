@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ConsultiingPlatform {
 
     public static void main(String[] args) {
-        // Load .env file and set as system properties
+        // Try loading from current directory first, fallback to parent directory
         Dotenv dotenv = Dotenv.configure()
-                .directory("./")
+                .directory("../")
                 .ignoreIfMissing()
                 .load();
         

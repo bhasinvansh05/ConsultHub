@@ -7,6 +7,7 @@ import com.consultingplatform.payment.domain.PaymentMethod;
 import com.consultingplatform.payment.domain.PaymentStatus;
 import com.consultingplatform.payment.domain.PaymentStrategy;
 import com.consultingplatform.payment.domain.PaymentType;
+import com.consultingplatform.notification.service.NotificationService;
 import com.consultingplatform.payment.repository.PaymentMethodRepository;
 import com.consultingplatform.payment.repository.PaymentRepository;
 import com.consultingplatform.payment.web.dto.PaymentMethodDto;
@@ -28,6 +29,7 @@ public class PaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final BookingRepository bookingRepository;
     private final PaymentValidationService validationService;
+    private final NotificationService notificationService;
 
     @Transactional
     public PaymentResponseDto processPayment(ProcessPaymentRequest request) throws InterruptedException {
@@ -91,6 +93,7 @@ public class PaymentService {
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             booking.setStatus("PAID");
             bookingRepository.save(booking);
+            notificationService.sendPaymentSuccessNotification(booking);
         }
 
         return toResponseDto(payment);
@@ -174,6 +177,24 @@ public class PaymentService {
         return result;
     }
 
+    @Transactional
+    public void processRefund(Long bookingId, double refundPercentage) {
+        if (refundPercentage <= 0) {
+            return;
+        }
+
+        List<Payment> payments = paymentRepository.findByBookingId(bookingId);
+        for (Payment payment : payments) {
+            if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                payment.setStatus(PaymentStatus.REFUNDED);
+                java.math.BigDecimal refundAmount = payment.getAmount().multiply(java.math.BigDecimal.valueOf(refundPercentage)).setScale(2, java.math.RoundingMode.HALF_UP);
+                payment.setRefundAmount(refundAmount);
+                payment.setRefundedAt(java.time.LocalDateTime.now());
+                paymentRepository.save(payment);
+            }
+        }
+    }
+
     private PaymentMethod buildPaymentMethod(Long clientId, PaymentMethodDto dto, PaymentType type) {
         PaymentMethod method = new PaymentMethod();
         method.setClientId(clientId);
@@ -211,6 +232,8 @@ public class PaymentService {
         dto.setPaymentType(payment.getStrategyType());
         dto.setTimestamp(payment.getTimestamp());
         dto.setFailureReason(payment.getFailureReason());
+        dto.setRefundAmount(payment.getRefundAmount());
+        dto.setRefundedAt(payment.getRefundedAt());
         return dto;
     }
 }

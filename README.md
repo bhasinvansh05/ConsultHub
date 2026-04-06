@@ -12,11 +12,16 @@ The application follows a **layered, package-by-feature architecture**:
 
 ```
 com.consultingplatform
-├── user/           # User management — Client, Consultant, Admin (inheritance)
-├── consultant/     # Consulting services, availability slots, booking decisions
-├── booking/        # Booking lifecycle and state machine
-├── payment/        # Payment processing, payment methods, payment history
-└── admin/          # Consultant approval, system policy management
+├── admin/               # Consultant approval, system policy management
+├── auth/                # Authentication endpoints and payload DTOs
+├── booking/             # Booking lifecycle and state machine
+├── config/              # Global configurations (Security, Exception Handling)
+├── consultant/          # Consultant profiles and availability slots
+├── consultingservice/   # Core consulting services catalog
+├── notification/        # System and email notifications
+├── payment/             # Payment processing, payment methods, payment history
+├── security/            # JWT filters, UserDetailsService, security chains
+└── user/                # User management — Client, Consultant, Admin (inheritance)
 ```
 
 Each package is internally organized into:
@@ -30,7 +35,7 @@ Each package is internally organized into:
 - `frontend/` — Static demo UI (`index.html`) for exercising all API flows
 - `diagrams/` — UML and design diagrams
 
-**Tech Stack:** Java 17, Spring Boot 4.0.3, Spring Data JPA, PostgreSQL, Lombok
+**Tech Stack:** Java 17, Spring Boot 4.0.3, Spring Data JPA, PostgreSQL, Lombok, Docker
 
 **High-level flow:**
 1. Consultants create services and availability slots
@@ -38,6 +43,75 @@ Each package is internally organized into:
 3. Consultants accept or reject bookings
 4. Confirmed bookings can be paid through the payment module
 5. After payment, consultants mark sessions as complete
+
+---
+
+## Getting Started / How to Run
+
+This project supports running via **Docker** (recommended) or running **locally directly on your machine**.
+
+### 1. Prerequisites
+- **Java 17** (if running via IDE/Maven directly)
+- **Docker & Docker Compose** (if running containerized)
+- Make sure you have a `.env` file in the root of the project. (You can copy `.env.example` to `.env` if one exists).
+
+### 2. The Three Databases
+This project uses three different databases depending on how you run it:
+1. **Docker PostgreSQL (Local):** An isolated local DB created by Docker. Used when running `docker compose up`.
+2. **Neon DB (Cloud PostgreSQL):** A live remote database. Uncomment the `# 3. REMOTE NEON DATABASE` section in `.env` to connect to this.
+3. **H2 (In-Memory Database):** A fake, temporary DB used **only for running automated tests**. Keeps tests fast and safe.
+
+### 3. Running with Docker (Recommended)
+This method spins up the **PostgreSQL database**, the **Spring Boot backend**, and the **Vite React frontend** inside isolated containers. You do not need to install Java, Node, or Postgres on your Mac.
+
+```bash
+# Build and start the backend, frontend, and database
+docker compose up --build
+
+# Stop the containers
+docker compose down
+
+# Note: If you want to wipe the database clean, run:
+docker compose down -v
+```
+*(The backend API will be available at `http://localhost:8080`)*
+*(The frontend application will be available at `http://localhost:3000`)*
+
+### 4. Running Locally (Without Docker)
+If you prefer to run the backend directly from IntelliJ/Eclipse or Terminal, you must provide it with a database:
+1. **Using Docker just for the DB:**
+   Run `docker compose up db` to start the local DB. Then uncomment the `# 2. SPRING BOOT APP` section in `.env`.
+2. **Using the Neon Cloud DB:**
+   Uncomment the `# 3. REMOTE NEON DATABASE` section in `.env`.
+3. **Start the app:**
+   ```bash
+   cd backend
+   ./mvnw spring-boot:run
+   ```
+
+### 5. Running Tests
+Tests are automatically configured to use the **H2 In-Memory Database** (so they don't break your real data).
+```bash
+cd backend
+./mvnw test
+```
+
+### 6. AI Customer Assistant & Configuration
+The platform integrates an **AI Customer Assistant chatbot** (powered by Gemini) for helping clients navigate the consulting offerings.
+
+**Configuration Required (API Key):**
+For the chatbot (and AI-integrated features) to function in the backend, you must provide your **Gemini API Key**.
+1. Open or create a `.env` file at the root of your project directory (meaning at the same level as `docker-compose.yml`).
+2. Add your key like so:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+3. When running via `docker compose`, this key is automatically injected into the backend container. 
+
+**Accessing the Chatbot:**
+Once the full application (frontend + backend) is running:
+1. Open your browser and go to `http://localhost:3000` (the frontend application).
+2. The AI Customer Assistant is accessible via a Chat Widget / **Chatbot** page linked in the application navigation. Guests can use it to find answers and recommendations.
 
 ---
 
@@ -103,74 +177,13 @@ When a booking is loaded from the database, its status string is passed to the f
 
 ---
 
-## How to Run
-
-### Prerequisites
-
-- Java 17+
-- Maven 3.8+
-- A PostgreSQL database with the schema from `backend/docs/consulting_db_schema.sql`
-
-### Steps
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/bhanuRakshita/EECS-3311-Project.git
-   cd EECS-3311-Project/backend
-   ```
-
-2. **Set the required environment variables:**
-
-   ```bash
-   export SPRING_DATASOURCE_URL=jdbc:postgresql://<host>/<database>?sslmode=require
-   export SPRING_DATASOURCE_USERNAME=<username>
-   export SPRING_DATASOURCE_PASSWORD=<password>
-   export SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-   export SPRING_JPA_HIBERNATE_DDL_AUTO=update
-   ```
-
-3. **Build and run:**
-
-   ```bash
-   mvn spring-boot:run
-   ```
-
-   The backend starts at `http://localhost:8080`.
-
-### Option 2: Docker Compose (no external database required)
-
-**Prerequisites:** Docker Desktop installed and running.
-
-1. From the project root, start both the database and backend:
-
-   ```bash
-   docker compose --profile localdb up --build
-   ```
-
-2. The backend starts at `http://localhost:8080`.
-   Database: `consulting_db`, user: `admin`, password: `changeme`.
-
-3. To stop:
-
-   ```bash
-   docker compose --profile localdb down
-   ```
-
-4. To stop and delete the database volume:
-
-   ```bash
-   docker compose --profile localdb down -v
-   ```
-
----
-
 ## Key API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/services` | List all consulting services |
-| GET | `/api/consultant/{id}/availability` | Get available slots for a consultant |
+| POST | `/api/auth/login` | Authenticate an existing user |
+| GET | `/api/services` | List all consulting services |
+| GET | `/api/services/{serviceId}/availability` | Get available slots for a specific service |
 | POST | `/bookings` | Create a booking `{ clientId, slotId }` |
 | GET | `/bookings/{id}` | Get booking by ID |
 | PUT | `/bookings/{id}/cancel` | Client cancels a booking |
@@ -178,18 +191,15 @@ When a booking is loaded from the database, its status string is passed to the f
 | PUT | `/api/consultant/{cid}/bookings/{bid}/reject` | Consultant rejects |
 | PUT | `/api/consultant/{cid}/bookings/{bid}/complete` | Consultant completes |
 | POST | `/api/payments/process` | Process a payment |
-| GET | `/api/payments/client/{id}/history` | Client payment history |
-| GET | `/users` | List all users |
-| POST | `/users` | Create a user `{ role, firstName, lastName, email, ... }` |
+| GET | `/api/payments/history/{clientId}` | Client payment history |
+| GET | `/api/users` | List all users |
+| POST | `/api/users` | Create a user `{ role, firstName, lastName, email, ... }` |
+| GET | `/api/admin/stats` | Get admin dashboard statistics |
+| GET | `/api/admin/system/status` | Get system status |
+| GET | `/api/admin/consultants/pending` | Get pending consultant registrations |
+| POST | `/api/admin/consultants/{id}/approval` | Approve or reject a consultant |
+| GET/PUT | `/api/admin/policies/{key}` | Get or update a system policy |
+| GET/POST/PUT/DELETE | `/api/admin/services` | Admin management for consulting services |
 
 ---
 
-## Team Member Contributions
-
-Contributions are visible from the Git commit history (`git log --oneline --all`).
-
-| Member | Commits | Primary Contributions |
-|--------|---------|-----------------------|
-| **Bhanu Rakshita Paul** | 31 | Project lead. User module with JPA inheritance (`Client`, `Consultant`, `Admin`). Admin module (consultant approval, system policies). Booking module refactoring and endpoint cleanup. Database schema design and migrations.  |
-| **Vansh Bhasin** | 30 |  Consultant availability slot management. Booking–payment integration. Docker and environment configuration. `ConsultingService` package refactoring. |
-| **Rudra (RD-1205)** | 7 | Payment module implementing Strategy Pattern (`CreditCardPayment`, `DebitCardPayment`, `PayPalPayment`, `BankTransferPayment`). End-to-end integration testing and seed data.PR reviews and merges. |

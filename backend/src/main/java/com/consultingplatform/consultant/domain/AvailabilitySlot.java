@@ -30,6 +30,10 @@ public class AvailabilitySlot {
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable = true;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

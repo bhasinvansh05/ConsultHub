@@ -20,4 +20,6 @@ public class PaymentResponseDto {
     private String paymentType;
     private LocalDateTime timestamp;
     private String failureReason;
+    private BigDecimal refundAmount;
+    private LocalDateTime refundedAt;
 }

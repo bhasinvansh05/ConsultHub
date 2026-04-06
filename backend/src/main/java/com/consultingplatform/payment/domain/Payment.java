@@ -45,6 +45,12 @@ public class Payment {
 
     private String failureReason;
 
+    @Column(name = "refund_amount", precision = 10, scale = 2)
+    private BigDecimal refundAmount;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @PrePersist
     protected void onCreate() {
         if (id == null)        id        = UUID.randomUUID().toString();

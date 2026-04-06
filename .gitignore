@@ -30,6 +30,8 @@ backend/build/
 # React / Node
 frontend/node_modules/
 frontend/build/
+frontend/dist/
+frontend/.vite/
 frontend/.env
 
 # Environment
@@ -54,3 +56,4 @@ frontend/.env
 # OS
 .DS_Store
 Thumbs.db
+postman/environments/Chat.environment.yaml

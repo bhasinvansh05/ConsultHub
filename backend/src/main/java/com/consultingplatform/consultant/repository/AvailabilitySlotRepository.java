@@ -12,6 +12,8 @@ public interface AvailabilitySlotRepository extends JpaRepository<AvailabilitySl
 
     List<AvailabilitySlot> findByConsultantId(Long consultantId);
 
+    List<AvailabilitySlot> findByServiceId(Long serviceId);
+
     @Query("SELECT COUNT(s) > 0 FROM AvailabilitySlot s WHERE s.consultantId = :consultantId " +
            "AND s.startAt < :endAt AND s.endAt > :startAt")
     boolean existsOverlappingSlot(@Param("consultantId") Long consultantId,

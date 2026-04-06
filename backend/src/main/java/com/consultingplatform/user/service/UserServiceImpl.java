@@ -8,7 +8,9 @@ import com.consultingplatform.user.domain.Client;
 import com.consultingplatform.user.domain.Consultant;
 import com.consultingplatform.user.domain.User;
 import com.consultingplatform.user.repository.UserRepository;
+import com.consultingplatform.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
+import com.consultingplatform.security.PasswordService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -20,11 +22,17 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ConsultantRegistrationRepository consultantRegistrationRepository;
+    private final PasswordService passwordService;
+    private final NotificationService notificationService;
 
     public UserServiceImpl(UserRepository userRepository,
-                          ConsultantRegistrationRepository consultantRegistrationRepository) {
+                          ConsultantRegistrationRepository consultantRegistrationRepository,
+                          PasswordService passwordService,
+                          NotificationService notificationService) {
         this.userRepository = userRepository;
         this.consultantRegistrationRepository = consultantRegistrationRepository;
+        this.passwordService = passwordService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -43,12 +51,13 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         
         // If consultant, create registration entry for admin approval
-        if (savedUser instanceof Consultant) {
+        if (savedUser instanceof Consultant consultant) {
             ConsultantRegistration registration = new ConsultantRegistration();
             registration.setConsultantId(savedUser.getId());
             registration.setStatus(ConsultantApprovalStatus.PENDING);
             registration.setCreatedAt(Instant.now());
             consultantRegistrationRepository.save(registration);
+            notificationService.sendConsultantPendingApprovalNotificationsToAdmins(consultant);
         }
         
         return savedUser;
@@ -106,7 +115,8 @@ public class UserServiceImpl implements UserService {
     private Consultant mapToConsultant(Map<String, Object> data) {
         Consultant consultant = new Consultant();
         setCommonFields(consultant, data);
-        // Approval status managed via consultant_registrations table
+        // Default consultant to INACTIVE until admin approves
+        consultant.setAccountStatus("INACTIVE");
         return consultant;
     }
     
@@ -121,7 +131,15 @@ public class UserServiceImpl implements UserService {
     
     private void setCommonFields(User user, Map<String, Object> data) {
         user.setEmail((String) data.get("email"));
-        user.setPasswordHash((String) data.get("passwordHash"));
+        // Accept either a plain `password` (hash it via PasswordService) or a pre-hashed `passwordHash`.
+        if (data.containsKey("password")) {
+            String raw = (String) data.get("password");
+            if (raw != null) {
+                user.setPasswordHash(passwordService.hash(raw));
+            }
+        } else if (data.containsKey("passwordHash")) {
+            user.setPasswordHash((String) data.get("passwordHash"));
+        }
         user.setFirstName((String) data.get("firstName"));
         user.setLastName((String) data.get("lastName"));
         user.setPhoneNumber((String) data.get("phoneNumber"));
