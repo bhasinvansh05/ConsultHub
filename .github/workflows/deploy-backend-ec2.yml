@@ -34,5 +34,12 @@ jobs:
             docker image prune -f
 
             echo "Waiting for backend to boot..."
-            sleep 15
-            curl -fsS https://api-consulthub.vanshbhasin.dev/actuator/health
+            sleep 20
+
+            # Check local container health from inside EC2. This avoids DNS/TLS issues.
+            if ! curl -fsS --max-time 10 http://127.0.0.1:8080/actuator/health; then
+              echo "Health check failed. Dumping backend diagnostics..."
+              docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+              docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=200 backend
+              exit 1
+            fi
