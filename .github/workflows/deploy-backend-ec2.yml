@@ -35,4 +35,4 @@ jobs:
 
             echo "Waiting for backend to boot..."
             sleep 15
-            curl -fsS http://127.0.0.1:8080/actuator/health
+            curl -fsS https://api-consulthub.vanshbhasin.dev/actuator/health
