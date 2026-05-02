@@ -3,6 +3,8 @@
  * (no WebSocket); this module owns the fetch lifecycle and raw body parsing.
  */
 
+import { resolveApiUrl } from '../lib/apiConfig'
+
 export const AGENT_CHAT_PATH = '/api/agent/chat'
 
 /**
@@ -46,7 +48,7 @@ export function buildAgentChatRequestBody({ message, conversationId }) {
  */
 export async function postAgentChatRequest({ message, conversationId, token, signal }) {
   const body = buildAgentChatRequestBody({ message, conversationId })
-  const res = await fetch(AGENT_CHAT_PATH, {
+  const res = await fetch(resolveApiUrl(AGENT_CHAT_PATH), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
