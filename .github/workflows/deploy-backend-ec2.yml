@@ -34,12 +34,18 @@ jobs:
             docker image prune -f
 
             echo "Waiting for backend to boot..."
-            sleep 20
+            max_attempts=24
+            attempt=1
+            until curl -fsS --max-time 10 http://127.0.0.1:8080/actuator/health; do
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "Health check failed after $max_attempts attempts. Dumping backend diagnostics..."
+                docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+                docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=200 backend
+                exit 1
+              fi
+              echo "Health check attempt $attempt/$max_attempts failed; retrying in 5s..."
+              attempt=$((attempt + 1))
+              sleep 5
+            done
 
-            # Check local container health from inside EC2. This avoids DNS/TLS issues.
-            if ! curl -fsS --max-time 10 http://127.0.0.1:8080/actuator/health; then
-              echo "Health check failed. Dumping backend diagnostics..."
-              docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
-              docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=200 backend
-              exit 1
-            fi
+            echo "Backend health check passed."
