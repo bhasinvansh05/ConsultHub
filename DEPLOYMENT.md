@@ -124,6 +124,12 @@ Create secret:
 - If not using custom domain:
   - Remove `frontend/public/CNAME`
 
+If the DNS record lives in Cloudflare, keep the record **DNS only** (grey cloud).
+GitHub Pages issues and renews its own Let's Encrypt certificate through an
+HTTP-01 ACME challenge served from the Pages origin. A proxied (orange cloud)
+record answers that challenge itself, so issuance and every ~90-day renewal
+fail, leaving the Pages origin without a certificate.
+
 ### 5.4 Trigger frontend deploy
 
 - Push any frontend change to `main`, or
@@ -154,3 +160,20 @@ Create secret:
 - `Frontend builds but API calls fail`:
   - `VITE_API_BASE_URL` secret missing/wrong
   - Backend port `8080` blocked in security group
+- `Cloudflare error 526 "Invalid SSL certificate" on the frontend domain`:
+  - The Pages deploy succeeded, but the Pages origin has no valid certificate
+    and Cloudflare is proxying with SSL/TLS mode `Full (strict)`
+  - Check the state with:
+    `gh api repos/<owner>/<repo>/pages --jq .https_certificate`
+    (`bad_authz` or a past `expires_at` means ACME issuance/renewal failed)
+  - Fix:
+    1. Cloudflare -> `DNS` -> set the frontend record to **DNS only** (grey cloud)
+    2. GitHub -> `Settings` -> `Pages` -> clear the custom domain, save, then
+       re-enter it to restart ACME authorization
+    3. Wait for `Enforce HTTPS` to become available (usually minutes), then tick it
+  - Leave the record unproxied so automatic renewals keep working
+- `Frontend loads over HTTPS but API calls are blocked as mixed content`:
+  - `VITE_API_BASE_URL` points at `http://<EC2_IP>:8080`; browsers block plain
+    HTTP requests from an HTTPS page
+  - Put the backend behind HTTPS (`https://api.your-domain.com` via Nginx +
+    Let's Encrypt, or an ALB with ACM) and update the secret
